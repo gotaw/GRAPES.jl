@@ -1,0 +1,45 @@
+[
+  {
+    "name": "GRAPES.jl",
+    "organization": "U.S. Geological Survey",
+    "description": "Software to create and use Graph Prediction of Earthquake Shaking (GRAPES) models.",
+    "version": "0.1.0",
+    "status": "Development",
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://code.usgs.gov/tclements/GRAPES.jl/raw/main/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://code.usgs.gov/tclements/GRAPES.jl",
+    "downloadURL": "https://code.usgs.gov/tclements/GRAPES.jl/-/archive/main/GRAPES.jl.zip",
+    "disclaimerURL": "https://code.usgs.gov/tclements/GRAPES.jl/raw/main/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/tclements/GRAPES.jl.git",
+    "vcs": "git",
+
+    "laborHours": 0,
+
+    "tags": [
+      "USGS",
+      "GRAPES.jl"
+    ],
+
+    "languages": [
+      "Markdown"
+    ],
+
+    "contact": {
+      "name": "Tim Clements",
+      "email": "tclements@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2023-06-28"
+    }
+  }
+]
