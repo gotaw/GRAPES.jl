@@ -118,7 +118,7 @@ Uses AK-135 travel time table.
 function predictTT(EQ::EQLoc, ST::GeoLoc, phase::Union{AbstractString, AbstractChar}="p")
 
     ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(travel_time_path)["$(uppercase(phase))_travel_time"]
+    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
 
     # calculate Earthquake - station distance
     distance_from_earthquake = Geodesics.surface_distance(
