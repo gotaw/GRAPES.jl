@@ -192,8 +192,7 @@ function generate_graph_batch(
 
             # normalize 
             if normalize
-                raw .-= mean(raw, dims=1)
-                raw ./= maximum(abs.(raw), dims=1)
+                raw = maxnorm12(raw)
             end
 
             G = GNNGraph(adj, ndata = (x=raw), gdata = (u=pga))
@@ -352,8 +351,7 @@ function generate_test_batch(
 
         # normalize 
         if normalize
-            raw .-= mean(raw, dims=1)
-            raw ./= maximum(abs.(raw), dims=1)
+            raw = maxnorm12(raw)
         end
 
         push!(all_graphs, GNNGraph(adj, ndata = (x=raw,), gdata= (u=pga,)))
@@ -423,8 +421,7 @@ function generate_noise_batch(
 
         # normalize 
         if normalize
-            event_noise .-= mean(event_noise, dims=1)
-            event_noise ./= maximum(abs.(event_noise), dims=1)
+            event_noise = maxnorm12(event_noise)
         end
 
         G = GNNGraph(adj, ndata = (x=event_noise,), gdata= (u=peak_noise))
@@ -546,8 +543,7 @@ function generate_graph(
     end
 
     if normalize
-        raw .-= mean(raw, dims=1)
-        raw ./= maximum(abs.(raw), dims=1)
+        raw = maxnorm12(raw)
     end
 
     g = GNNGraph(adj, ndata = (x=raw,), gdata= (u=pga,))

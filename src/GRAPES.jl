@@ -28,7 +28,7 @@ include("io.jl")
 include("utils.jl")
 include("distances.jl")
 include("filter.jl")
-include("batching.jl")
 include("graph-models.jl")
+include("batching.jl")
 
 end

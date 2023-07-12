@@ -1,4 +1,4 @@
-export GRAPES_model
+export GRAPES_model, maxnorm12
 
 # type for GRAPES models. Layers and parameters are fields 
 struct GRAPES_model
