@@ -141,8 +141,8 @@ function predictTT(EQ::EQLoc, S::SeisData, phase::Union{AbstractString, Abstract
         distance_from_earthquake = Geodesics.surface_distance(
             EQ.lon,
             EQ.lat, 
-            ST.lon,
-            ST.lat,
+            S.loc[ii].lon,
+            S.loc[ii].lat,
             Geodesics.EARTH_R_MAJOR_WGS84,
         )
         distance_from_earthquake /= 1000
