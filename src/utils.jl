@@ -1,16 +1,4 @@
-export mad, smooth, smooth!, movingaverage, movingaverage!, envelope, envelope!, update_time!, add_response!, moving_abs_maximum
-
-"""
-
-    mad(x)
-
-Median absolute deviation. 
-
-"""
-function mad(A::AbstractArray, dims::Int=1)
-    m = median(A, dims=dims)
-    return median(abs.(A .- m), dims=dims)
-end
+export smooth, smooth!, envelope, envelope!, update_time!, add_response!, moving_abs_maximum
 
 """
 
@@ -24,27 +12,6 @@ Smooth vector `x` with `n` point moving mean.
 """
 smooth(x::AbstractVector{T}, n::Integer) where T <: AbstractFloat = DSP.conv(x, fill(T(1 / n), n))[n ÷ 2 + isodd(n)  : end - n ÷ 2]
 smooth!(x, n::Integer) = x .= smooth(x,n)
-
-"""
-
-    movingaverage(A, n, dims=1)
-
-Simple moving average of `A` of `n` points over dimension `dims`. 
-
-# Arguments 
-- `x::AbstractArray`: time-series
-- `n::Integer`: number of sample points for moving mean
-
-# Optional 
-- `dims`:: dimension to apply moving average, defaults to first dimension 
-"""
-function movingaverage(A::AbstractArray{T}, n::Integer; dims::Integer=1) where T 
-    c = cumsum(A, dims=dims)
-    c[n+1:end,:] .= c[n+1:end,:] .- c[1:end-n,:]
-    c[1:n,:] ./= T.(1:n)
-    c[n+1:end,:] ./= n
-    return c  
-end
 
 """
 
