@@ -11,6 +11,7 @@ This script applies the following processing to channels for the 2019 M7.1 Ridge
     9. Ensure each station has 3 channels (ENZ)
     10. Write all channels to single .seisio file 
 """
+
 println("Processing Ridgecrest waveform data")
 
 # time of ridgecrest earthquake 

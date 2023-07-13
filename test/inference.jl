@@ -49,7 +49,7 @@ struct GRAPES_pred
         grapes_error_mmi = grapes_mmi - maximum_mmi
         relative_time = (sample_time - origin_time) / Millisecond(1000)
 
-        return new(g, distance_from_earthquake, lon, lat, grapes_mmi, shakealert_mmi, current_mmi, maximum_mmi, grapes_error_mmi, shakealert_error_mmi, sample_time, relative_time)
+        return new(g, distance_from_earthquake, lon, lat, grapes_mmi, current_mmi, maximum_mmi, grapes_error_mmi, sample_time, relative_time)
     end
 end
 
@@ -95,7 +95,7 @@ for (ii, sample_time) in enumerate(sample_times)
         distance_from_earthquake, 
         lon, 
         lat, 
-        vec(out.ndata.x), 
+        Float64.(vec(out.ndata.x)), 
         sample_time, 
         origin_time,
     )
