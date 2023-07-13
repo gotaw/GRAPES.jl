@@ -1,8 +1,4 @@
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
-Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
-Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-GraphNeuralNetworks = "cffab07f-9bc2-4db1-8861-388f63bf7694"
-SeisIO = "b372bb87-02dd-52bb-bcf6-c30dd83fd342"
-Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
