@@ -5,14 +5,11 @@ can be finnicky at times...
 """
 
 # download channels for 2019 M7.1 Ridgecrest earthquake
-RIDGECREST_DIR = joinpath("../resources/Ridgecrest")  
-WAVEFORM_DIR = joinpath(RIDGECREST_DIR, "waveforms")
-if !isdir(WAVEFORM_DIR)
-    mkpath(WAVEFORM_DIR)
-end
+RIDGECREST_DIR = joinpath(@__DIR__,"../resources/Ridgecrest")  
 channels = readlines(joinpath(RIDGECREST_DIR, "channels.txt")) 
-starttime = DateTime(2019, 7, 6, 3, 19, 38) # origin time - 15 seconds 
-endtime = DateTime(2019, 7, 6, 3, 22, 53) # origin time + 3 minutes 
+origin_time = DateTime(2019, 7, 6, 3, 19, 53)
+starttime = origin_time - Second(15) # origin time - 15 seconds 
+endtime = origin_time + Second(90) # origin time + 1.5 minutes 
 
 # download data 
 N_channel = length(channels)
@@ -20,7 +17,7 @@ date_format = DateFormat("yyyy.mm.dd.HH.SS")
 date_str = Dates.format(starttime, date_format)
 for (idx, channel) in enumerate(channels) 
     print("Downloading $channel, $idx of $N_channel $(now())\r")
-    outpath = joinpath(WAVEFORM_DIR, join([channel, date_str, "seisio"], '.'))
+    outpath = joinpath(download_cache, join([channel, date_str, "seisio"], '.'))
     wave_src = channel[1:2] in ["AZ", "NN", "SN", "YN"]  ? "IRIS" : "SCEDC"
     gain_src = channel[1:2] in ["NP", "PG", "WR"]  ? "SCEDC" : "IRIS"
     if !isfile(outpath)
@@ -58,7 +55,7 @@ end
 println("\nDownload Complete!\n")
 
 # remove dataless files 
-files = readdir(WAVEFORM_DIR, join=true)
+files = readdir(download_cache, join=true)
 file_sizes = filesize.(files)
 remove_idx = findall(file_sizes .< 1000) # bytes 
 rm.(files[remove_idx])

@@ -54,11 +54,10 @@ struct GRAPES_pred
 end
 
 # load GRAPES model 
-model_path = "../resources/GRAPES-model.bson"
-BSON.@load model_path model 
+model = load_GRAPES_model()
 
 # load Ridgecrest waveforms 
-waveform_path = "../resources/SCSN.seisio"
+waveform_path = joinpath(processed_cache, "SCSN.seisio") 
 S = read_data(waveform_path)
 filtfilt!(S, rt="Highpass", fl=0.25)
 
@@ -70,7 +69,7 @@ ridge_loc = EQLoc(lat=35.77, lon = -117.599, dep=8.0)
 
 # convert to seismic waveform graph 
 rawT = 4.0 # seconds 
-predictT = 200.0 # seconds 
+predictT = 60.0 # seconds 
 k = 20 # nearest neighbors 
 maxdist = 30000.0 # meters
 logpga = true # return predictins in log10(pga [cm/s^2]) 

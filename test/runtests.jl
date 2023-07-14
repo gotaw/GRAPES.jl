@@ -1,4 +1,3 @@
-using BSON
 using GRAPES
 using GRAPES.Dates
 using GRAPES.FFTW
@@ -9,6 +8,7 @@ using GRAPES.SeisIO
 using GRAPES.SparseArrays
 using GRAPES.Statistics
 using LinearAlgebra: issymmetric
+using Scratch
 using Test
 
 """
@@ -20,8 +20,12 @@ we'll use data from the M7.1 Ridgecrest earthquake to test GRAPES.
 
 """
 
+# store data in scratch spaces
+download_cache =  get_scratch!(GRAPES, "ridgecrest_files")
+processed_cache = get_scratch!(GRAPES, "processed_files")
+
 # download data from M7.1 Ridgecrest earthquake for testing 
-# data is stored in ../resources/Ridgecrest/waveforms 
+# data is stored in ~/.julia/.scratchspaces/uuid-for-grapes/ridgecrest_files 
 include("download.jl")
 # minimal processing to standardize sampling rates + gain 
 include("process.jl")
@@ -140,9 +144,9 @@ include("inference.jl")
         @test size(x) == (1, g.num_nodes)
 
         # test that trained model loads correctly 
-        model_path = "../resources/GRAPES-model.bson"
-        BSON.@load model_path model 
+        model = load_GRAPES_model()
         @test isa(model, GRAPES_model) 
+        @test_throws ArgumentError load_GRAPES_model("this/path/does/not/exist/model.bson")
 
         # test inference using GNNGraph input 
         gout = model(g)

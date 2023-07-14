@@ -18,12 +18,9 @@ println("Processing Ridgecrest waveform data")
 origin_time = DateTime(2019, 7, 6, 3, 19, 53)
 
 # load channels for 2019 M7.1 Ridgecrest earthquake
-RIDGECREST_DIR = joinpath("../resources/Ridgecrest")  
-WAVEFORM_DIR = joinpath(RIDGECREST_DIR, "waveforms")
-if !isdir(WAVEFORM_DIR)
-    mkpath(WAVEFORM_DIR)
-end
-waveforms = readdir(WAVEFORM_DIR, join=true)
+RIDGECREST_DIR = joinpath(@__DIR__, "../resources/Ridgecrest")  
+seisiopath = joinpath(processed_cache, "SCSN.seisio") 
+waveforms = readdir(download_cache, join=true)
 S = read_data(waveforms)
 Scop = deepcopy(S)
 merge!(S)
@@ -73,5 +70,4 @@ station_to_keep = [ii for ii in 1:S.n if all( .!contains.(join(split(S.id[ii], "
 S = S[station_to_keep]
 
 # write combined waveforms to file 
-seisiopath = joinpath(RIDGECREST_DIR, "SCSN.seisio") 
 wseis(seisiopath, S)
