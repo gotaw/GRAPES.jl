@@ -1,9 +1,10 @@
-name="GRAPES"
+name = "GRAPES"
 uuid = "ad6326b3-f62c-4d40-9899-5d49f7bb4905"
 authors = ["Tim Clements"]
 version = "0.1.0"
 
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"

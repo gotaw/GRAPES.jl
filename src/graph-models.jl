@@ -1,4 +1,4 @@
-export GRAPES_model, maxnorm12
+export GRAPES_model, maxnorm12, load_GRAPES_model
 
 # type for GRAPES models. Layers and parameters are fields 
 struct GRAPES_model
@@ -107,6 +107,26 @@ end
 
 # function to extract PGA from current sample 
 getpga(x) = Flux.flatten(log10.(sqrt.(maximum(sum(x .^ 2, dims=2), dims=(1,2)))))
+
+"""
+
+  load_GRAPES_model()
+
+Convenience function to load GRAPES model stored in .bson file
+
+Defaults to loading model stored at /GRAPES.jl/resources/GRAPES-model.bson
+"""
+function load_GRAPES_model(model_path::String="")
+    if isempty(model_path)
+        model_path = joinpath(@__DIR__, "../resources/GRAPES-model.bson")
+    else
+        if !isfile(model_path)
+            throw(ArgumentError("model $model_path does not exist!"))  
+        end
+    end
+    BSON.@load model_path model 
+    return model 
+end
 
 """
 
