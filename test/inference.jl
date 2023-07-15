@@ -57,9 +57,9 @@ end
 model = load_GRAPES_model()
 
 # load Ridgecrest waveforms 
-waveform_path = joinpath(processed_cache, "SCSN.seisio") 
 S = read_data(waveform_path)
 filtfilt!(S, rt="Highpass", fl=0.25)
+S.x = map(x -> convert.(Float32, x), S.x)
 
 # source parameters for Ridgecrest 
 origin_time = DateTime(2019, 7, 6, 3, 19, 53)

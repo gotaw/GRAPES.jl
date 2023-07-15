@@ -23,6 +23,7 @@ we'll use data from the M7.1 Ridgecrest earthquake to test GRAPES.
 # store data in scratch spaces
 download_cache =  get_scratch!(GRAPES, "ridgecrest_files")
 processed_cache = get_scratch!(GRAPES, "processed_files")
+waveform_path = joinpath(processed_cache, "SCSN.seisio")
 
 # download data from M7.1 Ridgecrest earthquake for testing 
 # data is stored in ~/.julia/.scratchspaces/uuid-for-grapes/ridgecrest_files 
@@ -35,7 +36,7 @@ include("inference.jl")
 @testset "GRAPES.jl" begin
 
     # load waveforms from Ridgecrest for testing 
-    S = read_data("../resources/SCSN.seisio")
+    S = read_data(waveform_path)
     Z_idx = findall(endswith.(S.id, "Z"))
     Z = S[Z_idx]
     Z_lon = [Z.loc[ii].lon for ii in 1:Z.n]
@@ -167,8 +168,8 @@ include("inference.jl")
         # check that filtering did in fact occur 
         n = length(S.x[1])
         freq = rfftfreq(n, S.fs[1])
-        lowfreq = findall(freq .< 0.2)
-        highfreq = findall(freq .> 2.0)
+        lowfreq = findall(freq .<= 0.1)
+        highfreq = findall(10.0 .<= freq .< 40.0) # not enough power above 40 Hz
         Xfft = rfft(S.x[1])
         Kfft = rfft(S_kunugi.x[1])
         Xspec = real.(Xfft .* conj(Xfft))
