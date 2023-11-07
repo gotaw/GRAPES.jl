@@ -68,4 +68,7 @@ station_to_keep = [ii for ii in 1:S.n if all( .!contains.(join(split(S.id[ii], "
 S = S[station_to_keep]
 
 # write combined waveforms to file 
-wseis(waveform_path, S)
+if isfile(waveform_path)
+    @warn "Over-writing processed data for Ridgecrest EQ"
+    wseis(waveform_path, S)
+end
