@@ -2,7 +2,7 @@
 
 julia_version = "1.9.1"
 manifest_format = "2.0"
-project_hash = "1560a1dc7f96d5bff4614a407941cab4507cb215"
+project_hash = "e163f9b4a82925bc9a6adbaee9116d4b5f81a632"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -409,13 +409,6 @@ deps = ["ExprTools", "InteractiveUtils", "LLVM", "Libdl", "Logging", "Scratch", 
 git-tree-sha1 = "d60b5fe7333b5fa41a0378ead6614f1ab51cf6d0"
 uuid = "61eb1bfa-7361-4325-ad38-22787b887f55"
 version = "0.21.3"
-
-[[deps.Geodesics]]
-git-tree-sha1 = "9fa57f6c5a42ef1f72539bc60c30dae18e5f32d4"
-repo-rev = "master"
-repo-url = "https://github.com/anowacki/Geodesics.jl"
-uuid = "6aaf26a4-c633-11e8-35ae-8904cb805353"
-version = "0.2.4"
 
 [[deps.Glob]]
 git-tree-sha1 = "97285bbd5230dd766e9ef6749b80fc617126d496"

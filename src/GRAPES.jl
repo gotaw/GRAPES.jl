@@ -7,7 +7,6 @@ using Dates
 using DSP
 using FFTW
 using Flux
-using Geodesics
 using Graphs 
 using GraphNeuralNetworks
 using Interpolations
@@ -24,6 +23,7 @@ import Flux: batch
 import GraphNeuralNetworks: batch
 import GraphNeuralNetworks.GNNGraphs: ones_like
 
+include("Geodesics.jl") # https://github.com/anowacki/Geodesics.jl until registered for distance calculation 
 include("travel-time.jl")
 include("io.jl")
 include("utils.jl")
