@@ -126,7 +126,7 @@ For more detailed use of GRAPES.jl, we suggest you check out the example in the 
   ## Citing 
   If you use GRAPES.jl, please cite the following article: 
 
-  Clements, T., Cochran, E., Baltay, A., Minson, S., Yoon, C., (2023), "Graph Prediction of Earthquake Shaking", in review at Science Advances. 
+  Clements, T., Cochran, E., Baltay, A., Minson, S., Yoon, C., (2023), "GRAPES: Earthquake Early Warning by Passing Seismic Vectors Through the Grapevine", submitted to Geophysical Research Letters. 
 
 
 
