@@ -13,7 +13,7 @@ GRAph Prediction of Earthquake Shaking (GRAPES) is an earthquake early warning (
 First [install Julia](https://julialang.org/downloads/) on your computer. We recommend using the latest version of Julia. To install GRAPES.jl, activate the package manager by typing `]`
 
 ```julia
-pkg> add https://code.usgs.gov/tclements/grapes.jl.git
+pkg> add https://code.usgs.gov/esc/grapes.jl.git
 ```
 
 We also recommend installing the following packages: 

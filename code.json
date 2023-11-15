@@ -3,7 +3,7 @@
     "name": "GRAPES.jl",
     "organization": "U.S. Geological Survey",
     "description": "Software to create and use Graph Prediction of Earthquake Shaking (GRAPES) models.",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "status": "Development",
 
     "permissions": {
@@ -11,26 +11,29 @@
       "licenses": [
         {
           "name": "Public Domain, CC0-1.0",
-          "URL": "https://code.usgs.gov/tclements/GRAPES.jl/raw/main/LICENSE.md"
+          "URL": "https://code.usgs.gov/esc/grapes.jl/-/raw/1.0.0/LICENSE.md"
         }
       ]
     },
 
-    "homepageURL": "https://code.usgs.gov/tclements/GRAPES.jl",
-    "downloadURL": "https://code.usgs.gov/tclements/GRAPES.jl/-/archive/main/GRAPES.jl.zip",
-    "disclaimerURL": "https://code.usgs.gov/tclements/GRAPES.jl/raw/main/DISCLAIMER.md",
-    "repositoryURL": "https://code.usgs.gov/tclements/GRAPES.jl.git",
+    "homepageURL": "https://code.usgs.gov/esc/grapes.jl",
+    "downloadURL": "https://code.usgs.gov/esc/grapes.jl/-/archive/1.0.0/grapes.jl-1.0.0.zip",
+    "disclaimerURL": "https://code.usgs.gov/esc/grapes.jl/-/raw/1.0.0/DISCLAIMER.md",
+    "repositoryURL": "https://code.usgs.gov/esc/grapes.jl.git",
     "vcs": "git",
 
     "laborHours": 0,
 
     "tags": [
       "USGS",
-      "GRAPES.jl"
+      "earthquake",
+      "Earthquake Early Warning",
+      "usg-artificial-intelligence"
     ],
 
     "languages": [
-      "Markdown"
+      "Markdown",
+      "Julia"
     ],
 
     "contact": {
@@ -39,7 +42,7 @@
     },
 
     "date": {
-      "metadataLastUpdated": "2023-06-28"
+      "metadataLastUpdated": "2023-11-15"
     }
   }
 ]
