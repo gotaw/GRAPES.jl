@@ -123,10 +123,16 @@ For more detailed use of GRAPES.jl, we suggest you check out the example in the 
 - CONTRIBUTING.md: Describes the process for collaborators to contribute to
   this project.
 
-  ## Citing 
-  If you use GRAPES.jl, please cite the following article: 
+## Citing 
+If you use GRAPES.jl, please cite the following article: 
 
-  Clements, T., Cochran, E., Baltay, A., Minson, S., Yoon, C., (2023), "GRAPES: Earthquake Early Warning by Passing Seismic Vectors Through the Grapevine", submitted to Geophysical Research Letters. 
+> Clements, T., Cochran, E., Baltay, A., Minson, S., Yoon, C., (2023), "GRAPES: Earthquake Early Warning by Passing Seismic Vectors Through the Grapevine", submitted to Geophysical Research Letters. 
+
+The code may also be cited directly as:
+
+> Clements, T. (2023) GRAPES.jl – GRAph Predcition of Earthquake Shaking in Julia (Version 1.0.0), U.S. Geological Survey Software Release, https://doi.org/10.5066/P97FBHTL.
+
+GRAPES.jl is IPDS Record Number IP-159460. 
 
 
 
