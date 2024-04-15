@@ -70,5 +70,5 @@ S = S[station_to_keep]
 # write combined waveforms to file 
 if isfile(waveform_path)
     @warn "Over-writing processed data for Ridgecrest EQ"
-    wseis(waveform_path, S)
 end
+wseis(waveform_path, S)
