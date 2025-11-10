@@ -196,8 +196,21 @@ function parse_hypocenter(record::String)
     # Subsidiary information
     si = record[61]
 
-    # Maximum Intensity 
-    mi = record[62]
+    # Maximum Intensity encoding is weird
+    micode = record[62]
+    if micode in ['0','1','2','3','4','7']
+        mi = parse(Int, micode)
+    elseif micode == 'A'
+        mi = 4.75
+    elseif micode == 'B'
+        mi = 5.25
+    elseif micode == 'C'
+        mi = 5.75
+    elseif micode == 'D'
+        mi = 6.25
+    else
+        mi = missing
+    end
 
     # Damage class 
     dc = record[63]
