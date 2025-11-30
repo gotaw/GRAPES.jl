@@ -26,6 +26,7 @@ Creates a batch of seismic waveform graphs for training.
 -`logpga::Bool`: Make target of graph log10 of peak ground acceleration (PGA)
 -`magntiude::Real`: Earthquake magnitude for magnitude-dependent attentuation
 -`filter::Bool`: Apply IIR bandpass filter to data  
+-`argmax::Bool`: Make target of graph time (s) of max PGA within `predictT` instead of PGA amplitude
 
 # Returns 
 - `graphs::Array{GNNGraph}`: Array of seismic station graphs 
@@ -52,6 +53,7 @@ function generate_graph_batch(
     logpga::Bool=false, 
     magnitude::Real=7.0,
     filter::Bool=false,
+    argmax::Bool=false,
 )   
     T = Float32 
     S = read_data("seisio", seisiopath)
@@ -180,11 +182,21 @@ function generate_graph_batch(
             Xwindow = @view X[max(current_sample, minimum_p_sample)+tshift:max_window_sample,:,:,random_station_sample]
             Xenv = envelope(Xwindow[raw_sample+1:end,:,:,:])
 
-            # downsample PGV data 
-            pga = dropdims(sqrt.(sum(maximum(Xenv .^ 2, dims=1), dims=2)), dims=(1,2,3))
-
-            if logpga
-                pga = log10.(pga)
+            # build target
+            if argmax
+                amp_time = sqrt.(sum(Xenv .^ 2, dims=(2,3))) # time x 1 x 1 x station
+                target = similar(dropdims(maximum(amp_time, dims=1), dims=(1,2,3)))
+                for ss in 1:size(Xenv, 4)
+                    ts = vec(amp_time[:, 1, 1, ss])
+                    idx = findmax(ts)[2]
+                    target[ss] = (idx - 1) / S[1].fs
+                end
+            else
+                pga = dropdims(sqrt.(sum(maximum(Xenv .^ 2, dims=1), dims=2)), dims=(1,2,3))
+                if logpga
+                    pga = log10.(pga)
+                end
+                target = pga
             end
 
             # reshape raw to 4D array 
@@ -195,7 +207,7 @@ function generate_graph_batch(
                 raw = maxnorm12(raw)
             end
 
-            G = GNNGraph(adj, ndata = (x=raw), gdata = (u=pga))
+            G = GNNGraph(adj, ndata = (x=raw), gdata = (u=target))
             push!(all_graphs, G)
             push!(stations, replace.(Zn.id,"..HNZ"=>""))
             push!(starttimes, current_sample + tshift)
@@ -233,6 +245,7 @@ Creates a batch of seismic waveform graphs for inference.
 -`logpga::Bool`: Make target of graph log10 of peak ground acceleration (PGA)
 -`magntiude::Real`: Earthquake magnitude for magnitude-dependent attentuation
 -`filter::Bool`: Apply IIR bandpass filter to data  
+-`argmax::Bool`: Make target of graph time (s) of max PGA within `predictT` instead of PGA amplitude
 
 # Returns 
 - `all_graphs::Array{GNNGraph}`: Array of seismic station graphs 
@@ -257,6 +270,7 @@ function generate_test_batch(
     logpga::Bool=false,
     magnitude::Real=7.0,
     filter::Bool=false,
+    argmax::Bool=false,
 )   
     T = Float32 
     S = read_data("seisio", seisiopath)
@@ -342,11 +356,21 @@ function generate_test_batch(
         raw = X[current_sample:current_sample+raw_sample-1,:,:,:]
         Xwindow = @view X[current_sample+raw_sample+1:max_window_sample,:,:,:]
 
-        # downsample PGV data 
-        pga = dropdims(sqrt.(sum(maximum(Xwindow .^ 2, dims=1), dims=2)), dims=(1,2,3))
-
-        if logpga
-            pga = log10.(pga)
+        # build target
+        if argmax
+            amp_time = sqrt.(sum(Xwindow .^ 2, dims=(2,3))) # time x 1 x 1 x station
+            target = similar(dropdims(maximum(amp_time, dims=1), dims=(1,2,3)))
+            for ss in 1:size(Xwindow, 4)
+                ts = vec(amp_time[:, 1, 1, ss])
+                idx = findmax(ts)[2]
+                target[ss] = (idx - 1) / S[1].fs
+            end
+        else
+            pga = dropdims(sqrt.(sum(maximum(Xwindow .^ 2, dims=1), dims=2)), dims=(1,2,3))
+            if logpga
+                pga = log10.(pga)
+            end
+            target = pga
         end
 
         # normalize 
@@ -354,7 +378,7 @@ function generate_test_batch(
             raw = maxnorm12(raw)
         end
 
-        push!(all_graphs, GNNGraph(adj, ndata = (x=raw,), gdata= (u=pga,)))
+        push!(all_graphs, GNNGraph(adj, ndata = (x=raw,), gdata= (u=target,)))
         push!(window_start_times, t[current_sample])
     end
     window_end_times = window_start_times .+ rawT 
