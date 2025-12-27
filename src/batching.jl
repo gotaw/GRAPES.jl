@@ -24,6 +24,7 @@ Creates a batch of seismic waveform graphs for training.
 -`biased::Bool`: Bias sampling of stations closer to the epicenter  
 -`batchsize::Integer`: Number of graphs per batch 
 -`logpga::Bool`: Make target of graph log10 of peak ground acceleration (PGA)
+-`seqpga::Bool`: Return per-second PGA targets instead of a single value per station
 -`magntiude::Real`: Earthquake magnitude for magnitude-dependent attentuation
 -`filter::Bool`: Apply IIR bandpass filter to data  
 
@@ -50,6 +51,7 @@ function generate_graph_batch(
     biased::Bool=false,
     batchsize::Integer=128,
     logpga::Bool=false, 
+    seqpga::Bool=false,
     magnitude::Real=7.0,
     filter::Bool=false,
 )   
@@ -180,19 +182,34 @@ function generate_graph_batch(
             Xwindow = @view X[max(current_sample, minimum_p_sample)+tshift:max_window_sample,:,:,random_station_sample]
             Xenv = envelope(Xwindow[raw_sample+1:end,:,:,:])
 
-            # downsample PGV data 
-            pga = dropdims(sqrt.(sum(maximum(Xenv .^ 2, dims=1), dims=2)), dims=(1,2,3))
-
-            if logpga
-                pga = log10.(pga)
-            end
-
             # reshape raw to 4D array 
             raw = Xwindow[1:raw_sample,:,:,:]
 
             # normalize 
             if normalize
                 raw = maxnorm12(raw)
+            end
+
+            if seqpga
+                samples_per_second = max(1, round(Int, S[1].fs))
+                num_seconds = max(1, cld(pga_sample, samples_per_second))
+                pga_series = zeros(eltype(Xenv), num_seconds, length(random_station_sample))
+                for ss in 1:num_seconds
+                    start_idx = (ss - 1) * samples_per_second + 1
+                    start_idx > size(Xenv, 1) && break
+                    stop_idx = min(start_idx + samples_per_second - 1, size(Xenv, 1))
+                    segment = Xenv[start_idx:stop_idx, :, :, :]
+                    pga_series[ss, :] .= dropdims(sqrt.(sum(maximum(segment .^ 2, dims=1), dims=2)), dims=(1,2,3))
+                end
+                pga = logpga ? log10.(pga_series) : pga_series
+            else
+                # downsample PGV data 
+                pga = dropdims(sqrt.(sum(maximum(Xenv .^ 2, dims=1), dims=2)), dims=(1,2,3))
+
+                if logpga
+                    pga = log10.(pga)
+                end
+                pga = reshape(pga, :, 1)
             end
 
             G = GNNGraph(adj, ndata = (x=raw), gdata = (u=pga))
@@ -231,6 +248,7 @@ Creates a batch of seismic waveform graphs for inference.
 -`α::Real`: clustering exponent for long-range connection  
 -`q::Integer`: Number of long-range connections per station
 -`logpga::Bool`: Make target of graph log10 of peak ground acceleration (PGA)
+-`seqpga::Bool`: Return per-second PGA targets instead of a single value per station
 -`magntiude::Real`: Earthquake magnitude for magnitude-dependent attentuation
 -`filter::Bool`: Apply IIR bandpass filter to data  
 
@@ -255,6 +273,7 @@ function generate_test_batch(
     q::Integer=1,
     normalize::Bool=false, 
     logpga::Bool=false,
+    seqpga::Bool=false,
     magnitude::Real=7.0,
     filter::Bool=false,
 )   
@@ -342,11 +361,27 @@ function generate_test_batch(
         raw = X[current_sample:current_sample+raw_sample-1,:,:,:]
         Xwindow = @view X[current_sample+raw_sample+1:max_window_sample,:,:,:]
 
-        # downsample PGV data 
-        pga = dropdims(sqrt.(sum(maximum(Xwindow .^ 2, dims=1), dims=2)), dims=(1,2,3))
+        if seqpga
+            samples_per_second = max(1, round(Int, S[1].fs))
+            future_length = min(pga_sample, size(Xwindow, 1))
+            num_seconds = max(1, cld(future_length, samples_per_second))
+            pga_series = zeros(eltype(Xwindow), num_seconds, size(Xwindow, 4))
+            for ss in 1:num_seconds
+                start_idx = (ss - 1) * samples_per_second + 1
+                start_idx > future_length && break
+                stop_idx = min(start_idx + samples_per_second - 1, future_length)
+                segment = @view Xwindow[start_idx:stop_idx, :, :, :]
+                pga_series[ss, :] .= dropdims(sqrt.(sum(maximum(segment .^ 2, dims=1), dims=2)), dims=(1,2,3))
+            end
+            pga = logpga ? log10.(pga_series) : pga_series
+        else
+            # downsample PGV data 
+            pga = dropdims(sqrt.(sum(maximum(Xwindow .^ 2, dims=1), dims=2)), dims=(1,2,3))
 
-        if logpga
-            pga = log10.(pga)
+            if logpga
+                pga = log10.(pga)
+            end
+            pga = reshape(pga, :, 1)
         end
 
         # normalize 
@@ -361,6 +396,25 @@ function generate_test_batch(
     return all_graphs, window_start_times, window_end_times, distance_from_earthquake, lon, lat 
 end
 
+"""
+    generate_noise_batch(noise_array, lon, lat, inputsize, nbatches)
+
+Creates a batch of noise-only graphs for training.
+
+# Optional 
+-`nstations::Integer`: Number of stations to sample per graph
+-`k::Integer`: Number of nearest neighbors per station
+-`maxdist::Real`: Connect all stations within `maxdist`, meters
+-`α::Real`: Clustering exponent for long-range connections
+-`q::Integer`: Number of long-range connections per station
+-`normalize::Bool`: Normalize all waveform data
+-`biased::Bool`: Bias sampling toward stations closer to the epicenter
+-`batchsize::Integer`: Number of graphs per batch
+-`predictT::Real`: Forward prediction time used when creating sequential PGA targets
+-`seqpga::Bool`: Return per-second PGA targets instead of a single value per station
+-`logpga::Bool`: Make target of graph log10 of peak ground acceleration (PGA)
+-`magnitude::Real`: Earthquake magnitude for magnitude-dependent attentuation
+"""
 function generate_noise_batch(
     noise_array::AbstractArray, 
     lon::AbstractArray, # station longitudes 
@@ -375,6 +429,8 @@ function generate_noise_batch(
     normalize::Bool=false, 
     biased::Bool=false,
     batchsize::Integer=128,
+    predictT::AbstractFloat=1.0,
+    seqpga::Bool=false,
     logpga::Bool=false,
     magnitude::Real=7.0,
 )   
@@ -393,7 +449,9 @@ function generate_noise_batch(
         event_noise = zeros(Float32, inputsize)
         for jj in eachindex(noise_random_selection)
             time_samples = size(noise_array[noise_random_selection[jj]], 1)
-            sample_start = rand(1:(time_samples - noise_samples))
+            available = time_samples - noise_samples + 1
+            available < 1 && continue
+            sample_start = rand(1:available)
             event_noise[:,:,1,jj] .= noise_array[noise_random_selection[jj]][sample_start:sample_start+noise_samples-1,:]
         end
 
@@ -413,16 +471,23 @@ function generate_noise_batch(
         adj = adjacency(g, kanno_2006_amplitude(sample_station_distance ./ 1000.0, magnitude))
 
         # downsample PGV data 
-        peak_noise = 3.3 * maximum(median(envelope(event_noise), dims=1), dims=2)[:]
+        scale = seqpga ? 1.0f0 : 3.3f0
+        peak_noise = scale .* maximum(median(envelope(event_noise), dims=1), dims=2)[:]
 
-        if logpga
-            peak_noise = log10.(peak_noise)
+        if seqpga
+            num_seconds = max(1, round(Int, predictT))
+            peak_noise_series = repeat(reshape(peak_noise, 1, :), num_seconds, 1)
+            peak_noise = logpga ? log10.(peak_noise_series) : peak_noise_series
+        else
+            peak_noise = logpga ? log10.(peak_noise) : peak_noise
         end
 
         # normalize 
         if normalize
             event_noise = maxnorm12(event_noise)
         end
+
+        !seqpga && (peak_noise = reshape(peak_noise, :, 1))
 
         G = GNNGraph(adj, ndata = (x=event_noise,), gdata= (u=peak_noise))
         all_graphs[ii] = G
@@ -563,8 +628,20 @@ function fast_noise_batch(graphs::AbstractArray, nstations::Integer)
 
     # preallocate graph data matrix 
     T2 = eltype(graphs[1].gdata.u)
-    u_size = (size(graphs[1].gdata.u, 1), N_graphs)
-    u = zeros(T2, u_size)
+    u_first = graphs[1].gdata.u
+    fillmode = :vector1
+    if ndims(u_first) == 3
+        u = zeros(T2, size(u_first, 1), size(u_first, 2), N_graphs)
+        fillmode = :nd3
+    elseif ndims(u_first) == 2 && size(u_first, 2) == nstations
+        u = zeros(T2, size(u_first, 1), size(u_first, 2), N_graphs)
+        fillmode = :matrix_station
+    elseif ndims(u_first) == 2
+        u = zeros(T2, size(u_first, 1), N_graphs)
+        fillmode = :matrix_vector
+    else
+        u = zeros(T2, length(u_first), N_graphs)
+    end
 
     # preallocate graphs 
     sources = Int[]
@@ -575,7 +652,15 @@ function fast_noise_batch(graphs::AbstractArray, nstations::Integer)
     # fill graphs 
     for ii in 1:N_graphs 
         x[:,:,:,(ii - 1) * nstations + 1 : ii * nstations] .= graphs[ii].ndata.x 
-        u[:,ii] .= graphs[ii].gdata.u[:,1]
+        if fillmode == :nd3
+            @views u[:,:,ii] .= graphs[ii].gdata.u[:,:,1]
+        elseif fillmode == :matrix_station
+            @views u[:,:,ii] .= graphs[ii].gdata.u
+        elseif fillmode == :matrix_vector
+            @views u[:,ii] .= graphs[ii].gdata.u[:,1]
+        else
+            @views u[:,ii] .= graphs[ii].gdata.u
+        end
         append!(sources, graphs[ii].graph[1] .+ (ii - 1) * nstations)
         append!(targets, graphs[ii].graph[2] .+ (ii - 1) * nstations)
         append!(graph_indicator, ones(Int64, nstations) .* ii)
