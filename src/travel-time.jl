@@ -1,5 +1,20 @@
 export predictTT, JMA_travel_time
 
+const _travel_time_cache = Dict{Tuple{Symbol,String},Any}()
+const _travel_time_lock = ReentrantLock()
+
+function _load_travel_time_interp(source::Symbol, phase::Union{AbstractString, AbstractChar})
+    phase_tag = uppercase(String(phase))
+    key = (source, phase_tag)
+    lock(_travel_time_lock) do
+        return get!(_travel_time_cache, key) do
+            res_name = source === :JMA ? "JMA" : "AK135"
+            path = joinpath(@__DIR__, "../resources/$(res_name)-$(phase_tag)-travel-time.jld2")
+            JLD2.load(path)["$(phase_tag)_travel_time"]
+        end
+    end
+end
+
 """
 
     JMA_travel_time(EQ, S)
@@ -23,10 +38,8 @@ Uses AK-135 travel time table, otherwise.
 function JMA_travel_time(EQ::EQLoc, S::SeisData, phase::Union{AbstractString, AbstractChar}="p")
 
     # load correct station table 
-    jma_travel_time_path = joinpath(@__DIR__, "../resources/JMA-$(uppercase(phase))-travel-time.jld2")
-    jma_travel_time_interp = JLD2.load(jma_travel_time_path)["$(uppercase(phase))_travel_time"]
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    jma_travel_time_interp = _load_travel_time_interp(:JMA, phase)
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
 
     travel_times = zeros(S.n)
     # calculate travel time 
@@ -52,10 +65,8 @@ end
 
 function JMA_travel_time(EQ::EQLoc, ST::GeoLoc, phase::Union{AbstractString, AbstractChar}="p")
     # load correct station table 
-    jma_travel_time_path = joinpath(@__DIR__, "../resources/JMA-$(uppercase(phase))-travel-time.jld2")
-    jma_travel_time_interp = JLD2.load(jma_travel_time_path)["$(uppercase(phase))_travel_time"]
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    jma_travel_time_interp = _load_travel_time_interp(:JMA, phase)
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
 
     # calculate Earthquake - station distance
     distance_from_earthquake = Geodesics.surface_distance(
@@ -77,10 +88,8 @@ end
 
 function JMA_travel_time(distance_from_earthquake::AbstractArray, earthquake_depth::Real, phase::Union{AbstractString, AbstractChar}="p")
     # load proper station table 
-    jma_travel_time_path = joinpath(@__DIR__, "../resources/JMA-$(uppercase(phase))-travel-time.jld2")
-    jma_travel_time_interp = JLD2.load(jma_travel_time_path)["$(uppercase(phase))_travel_time"]
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    jma_travel_time_interp = _load_travel_time_interp(:JMA, phase)
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
 
     # calculate travel times
     travel_times = zero(distance_from_earthquake)
@@ -117,8 +126,7 @@ Uses AK-135 travel time table.
 """
 function predictTT(EQ::EQLoc, ST::GeoLoc, phase::Union{AbstractString, AbstractChar}="p")
 
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
 
     # calculate Earthquake - station distance
     distance_from_earthquake = Geodesics.surface_distance(
@@ -133,8 +141,7 @@ function predictTT(EQ::EQLoc, ST::GeoLoc, phase::Union{AbstractString, AbstractC
 end
 
 function predictTT(EQ::EQLoc, S::SeisData, phase::Union{AbstractString, AbstractChar}="p")
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
 
     travel_times = zeros(S.n)
     for ii in eachindex(travel_times)
@@ -162,8 +169,7 @@ function predictTT(
     @assert length(station_latitude) == length(station_longitude)
     N = length(station_latitude)
     travel_times = zeros(N)
-    ak135_travel_time_path = joinpath(@__DIR__, "../resources/AK135-$(uppercase(phase))-travel-time.jld2")
-    ak135_travel_time_interp = JLD2.load(ak135_travel_time_path)["$(uppercase(phase))_travel_time"]
+    ak135_travel_time_interp = _load_travel_time_interp(:AK135, phase)
     for ii in eachindex(travel_times)
         distance_from_earthquake = Geodesics.surface_distance(
             event_longitude,
